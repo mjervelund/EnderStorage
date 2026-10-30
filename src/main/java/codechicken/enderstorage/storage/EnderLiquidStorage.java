@@ -4,7 +4,7 @@ import codechicken.enderstorage.api.AbstractEnderStorage;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.api.StorageType;
 import codechicken.enderstorage.manager.EnderStorageManager;
-import codechicken.lib.fluid.FluidUtils;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -17,7 +17,9 @@ public class EnderLiquidStorage extends AbstractEnderStorage {
 
     public static final StorageType<EnderLiquidStorage> TYPE = new StorageType<>("liquid");
 
-    public static final int CAPACITY = 16 * FluidUtils.B;
+    // FluidType.BUCKET_VOLUME directly: CCL's FluidUtils creates FluidStacks in its static
+    // initializer, which throws "Components not bound yet" during mod construction on 26.3.
+    public static final int CAPACITY = 16 * FluidType.BUCKET_VOLUME;
 
     private final FluidStacksResourceHandler handler = new FluidStacksResourceHandler(1, CAPACITY) {
         @Override
