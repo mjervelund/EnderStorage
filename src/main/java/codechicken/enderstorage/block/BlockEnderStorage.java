@@ -15,6 +15,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +73,7 @@ public abstract class BlockEnderStorage<T extends TileFrequencyOwner> extends Mo
     }
 
     @Override
-    public void playerDestroy(Level worldIn, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity te, ItemStack stack) {
+    public void playerDestroy(ServerLevel worldIn, ServerPlayer player, BlockPos pos, BlockState state, @Nullable BlockEntity te, ItemStack stack) {
         super.playerDestroy(worldIn, player, pos, state, te, stack);
         worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
     }
@@ -172,7 +174,7 @@ public abstract class BlockEnderStorage<T extends TileFrequencyOwner> extends Mo
     }
 
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter world, BlockPos pos, Direction side) {
+    public boolean shouldRedstoneWireConnectTo(BlockState state, BlockGetter world, BlockPos pos, @Nullable Direction side) {
         return world.getBlockEntity(pos) instanceof TileFrequencyOwner tile && tile.redstoneInteraction();
     }
 
@@ -193,8 +195,4 @@ public abstract class BlockEnderStorage<T extends TileFrequencyOwner> extends Mo
         return tileentity != null && tileentity.triggerEvent(eventID, eventParam);
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        throw new UnsupportedOperationException();
-    }
 }

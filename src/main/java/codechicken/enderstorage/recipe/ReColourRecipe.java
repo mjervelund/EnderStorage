@@ -7,11 +7,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.covers1624.quack.collection.ColUtils;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -25,18 +25,30 @@ import java.util.Objects;
  */
 public class ReColourRecipe implements CraftingRecipe {
 
+    public static final MapCodec<ReColourRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
+                    Codec.STRING.optionalFieldOf("group", "").forGetter(e -> e.group),
+                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(e -> e.result)
+            ).apply(builder, ReColourRecipe::new)
+    );
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, ReColourRecipe> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, e -> e.group,
+            ItemStackTemplate.STREAM_CODEC, e -> e.result,
+            ReColourRecipe::new
+    );
+
     protected final String group;
-    protected final ItemStack result;
+    protected final ItemStackTemplate result;
     protected final Ingredient ingredient;
 
-    public ReColourRecipe(ItemStack result) {
+    public ReColourRecipe(ItemStackTemplate result) {
         this("", result);
     }
 
-    public ReColourRecipe(String group, ItemStack result) {
+    public ReColourRecipe(String group, ItemStackTemplate result) {
         this.group = group;
         this.result = result;
-        ingredient = Ingredient.of(result.getItem());
+        ingredient = Ingredient.of(result.item().value());
     }
 
     @Override
@@ -66,16 +78,21 @@ public class ReColourRecipe implements CraftingRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput inv) {
         ItemWithPos chestPos = findChest(inv);
-        if (chestPos == null) return result.copy(); // This should not happen...
+        if (chestPos == null) return result.create(); // This should not happen...
 
         EnumColour[] colours = findDyes(inv, chestPos, null);
-        if (colours == null) return result.copy(); // This should also not happen...
+        if (colours == null) return result.create(); // This should also not happen...
 
         return Frequency.getComponentOrEmpty(chestPos.stack)
                 .withColours(colours)
-                .putComponent(result.copy());
+                .putComponent(result.create());
+    }
+
+    @Override
+    public boolean showNotification() {
+        return false;
     }
 
     @Override
@@ -147,29 +164,4 @@ public class ReColourRecipe implements CraftingRecipe {
     }
 
     private record ItemWithPos(int x, int y, ItemStack stack) { }
-
-    public static class Serializer implements RecipeSerializer<ReColourRecipe> {
-
-        private static final MapCodec<ReColourRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
-                        Codec.STRING.optionalFieldOf("group", "").forGetter(e -> e.group),
-                        ItemStack.STRICT_CODEC.fieldOf("result").forGetter(e -> e.result)
-                ).apply(builder, ReColourRecipe::new)
-        );
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, ReColourRecipe> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, e -> e.group,
-                ItemStack.STREAM_CODEC, e -> e.result,
-                ReColourRecipe::new
-        );
-
-        @Override
-        public MapCodec<ReColourRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ReColourRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
-    }
 }

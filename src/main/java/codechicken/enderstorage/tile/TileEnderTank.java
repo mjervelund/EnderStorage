@@ -159,7 +159,7 @@ public class TileEnderTank extends TileFrequencyOwner {
             pressure_state.invert();
             return true;
         }
-        return FluidUtil.interactWithFluidHandler(player, hand, getBlockPos(), getFluidHandler());
+        return FluidUtil.interactWithFluidHandler(player, hand, getBlockPos(), getFluidHandler(), null);
     }
 
     @Override

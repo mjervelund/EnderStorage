@@ -48,7 +48,7 @@ public class TankLayerRenderer extends RenderLayer<AvatarRenderState, PlayerMode
         if (!UUIDS.contains(state.getRenderData(PLAYER_UUID))) return;
 
         pose.pushPose();
-        pose.mulPose(new Quaternionf().rotateX((float) (MathHelper.torad * 180)));
+        pose.rotate(new Quaternionf().rotateX((float) (MathHelper.torad * 180)));
         pose.scale(0.5F, 0.5F, 0.5F);
         if (state.isCrouching) {
             pose.translate(0, -0.5, 0);
@@ -56,8 +56,8 @@ public class TankLayerRenderer extends RenderLayer<AvatarRenderState, PlayerMode
         if (state.isFallFlying) {
             xRot = -45;
         }
-        pose.mulPose(new Quaternionf().rotateY((float) -(yRot * MathHelper.torad)));
-        pose.mulPose(new Quaternionf().rotateX((float) (xRot * MathHelper.torad)));
+        pose.rotate(new Quaternionf().rotateY((float) -(yRot * MathHelper.torad)));
+        pose.rotate(new Quaternionf().rotateX((float) (xRot * MathHelper.torad)));
         pose.translate(-0.5, 1, -0.5);
 
         RenderTileEnderTank.RenderState tankState = new RenderTileEnderTank.RenderState();

@@ -25,7 +25,7 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -84,22 +84,34 @@ public class RenderTileEnderChest implements BlockEntityRenderer<TileEnderChest,
         pose.translate(0, 1.0, 1.0);
         pose.scale(1.0F, -1.0F, -1.0F);
         pose.translate(0.5, 0.5, 0.5);
-        pose.mulPose(Axis.YP.rotationDegrees(state.rotation.toYRot()));
+        pose.rotateDegrees(Axis.YP, state.rotation.toYRot());
         pose.translate(-0.5, -0.5, -0.5);
 
         // Render chest
+        var modelState = new EnderChestModel.State(state.lidAngle, state.frequency.hasOwner());
         collector.submitModel(
                 model,
-                new EnderChestModel.State(state.lidAngle, state.frequency.hasOwner()),
+                modelState,
                 pose,
                 EnderChestModel.RENDER_TYPE,
                 state.lightCoords,
                 state.overlayCoords,
                 -1,
                 null,
-                0,
-                state.breakProgress
+                0
         );
+        if (state.breakProgress != null) {
+            collector.order(1).submitCrumblingOverlay(
+                    model,
+                    modelState,
+                    pose,
+                    EnderChestModel.RENDER_TYPE,
+                    state.lightCoords,
+                    state.overlayCoords,
+                    -1,
+                    state.breakProgress
+            );
+        }
         pose.popPose();
 
         // Buttons

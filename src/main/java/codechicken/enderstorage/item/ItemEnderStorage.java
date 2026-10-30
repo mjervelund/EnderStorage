@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,15 +29,11 @@ public class ItemEnderStorage extends BlockItem {
     }
 
     @Override
-    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level world, @Nullable Player player, ItemStack stack, BlockState state) {
-        boolean flag = super.updateCustomBlockEntityTag(pos, world, player, stack, state);
-        TileFrequencyOwner tile = (TileFrequencyOwner) world.getBlockEntity(pos);
-        if (tile != null) {
+    public void onBlockPlacedBy(BlockPlaceContext context, Level world, BlockPos pos, BlockState state, @Nullable Player player, ItemStack stack) {
+        super.onBlockPlacedBy(context, world, pos, state, player, stack);
+        if (world.getBlockEntity(pos) instanceof TileFrequencyOwner tile) {
             tile.setFreq(getFreq(stack));
-            return true;
         }
-
-        return flag;
     }
 
     @Override

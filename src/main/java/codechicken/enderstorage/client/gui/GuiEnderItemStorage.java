@@ -1,7 +1,7 @@
 package codechicken.enderstorage.client.gui;
 
 import codechicken.enderstorage.container.ContainerEnderItemStorage;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -19,23 +19,17 @@ public class GuiEnderItemStorage extends AbstractContainerScreen<ContainerEnderI
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(graphics, mouseX, mouseY, partialTicks);
-        super.render(graphics, mouseX, mouseY, partialTicks);
-        renderTooltip(graphics, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title.getVisualOrderText(), 8, 6, 0xFF404040, false);
-        graphics.drawString(font, playerInventoryTitle.getVisualOrderText(), 8, imageHeight - 94, 0xFF404040, false);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.text(font, title.getVisualOrderText(), 8, 6, 0xFF404040, false);
+        graphics.text(font, playerInventoryTitle.getVisualOrderText(), 8, imageHeight - 94, 0xFF404040, false);
         menu.chestInv.freq.ownerName().ifPresent(name -> {
-            graphics.drawString(font, name.getVisualOrderText(), 170 - font.width(name), 6, 0xFF404040, false);
+            graphics.text(font, name.getVisualOrderText(), 170 - font.width(name), 6, 0xFF404040, false);
         });
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTicks);
         Identifier texture = Identifier.withDefaultNamespace(menu.chestInv.getSize() == 0 ? "textures/gui/container/dispenser.png" : "textures/gui/container/generic_54.png");
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;

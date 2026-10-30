@@ -3,14 +3,12 @@ package codechicken.enderstorage.recipe;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.init.EnderStorageModContent;
 import codechicken.lib.colour.EnumColour;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
 
 /**
@@ -18,12 +16,32 @@ import net.minecraft.world.item.crafting.*;
  */
 public class CreateRecipe extends ShapedRecipe {
 
-    public CreateRecipe(String group, ShapedRecipePattern pattern, ItemStack result) {
-        super(group, CraftingBookCategory.MISC, pattern, result.copy(), true);
+    public static final MapCodec<CreateRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
+                    Recipe.CommonInfo.MAP_CODEC.forGetter(e -> e.commonInfo),
+                    CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(e -> e.bookInfo),
+                    ShapedRecipePattern.MAP_CODEC.forGetter(e -> e.pattern),
+                    ItemStackTemplate.CODEC.fieldOf("result").forGetter(e -> e.result)
+            ).apply(builder, CreateRecipe::new)
+    );
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, CreateRecipe> STREAM_CODEC = StreamCodec.composite(
+            Recipe.CommonInfo.STREAM_CODEC, e -> e.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, e -> e.bookInfo,
+            ShapedRecipePattern.STREAM_CODEC, e -> e.pattern,
+            ItemStackTemplate.STREAM_CODEC, e -> e.result,
+            CreateRecipe::new
+    );
+
+    // ShapedRecipe keeps its result private, so carry our own copy for the codecs.
+    private final ItemStackTemplate result;
+
+    public CreateRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo, ShapedRecipePattern pattern, ItemStackTemplate result) {
+        super(commonInfo, bookInfo, pattern, result);
+        this.result = result;
     }
 
     @Override
-    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput inv) {
         EnumColour colour = EnumColour.WHITE;
         // Create recipe only has a single wool.
         // We find it and set the colour to that.
@@ -41,38 +59,12 @@ public class CreateRecipe extends ShapedRecipe {
             }
         }
         Frequency frequency = new Frequency(colour, colour, colour);
-        return frequency.putComponent(super.assemble(inv, registries));
+        return frequency.putComponent(super.assemble(inv));
     }
 
     @Override
-    public RecipeSerializer<? extends ShapedRecipe> getSerializer() {
-        return EnderStorageModContent.CREATE_RECIPE_SERIALIZER.get();
-    }
-
-    public static class Serializer implements RecipeSerializer<CreateRecipe> {
-
-        private static final MapCodec<CreateRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
-                        Codec.STRING.optionalFieldOf("group", "").forGetter(e -> e.group),
-                        ShapedRecipePattern.MAP_CODEC.forGetter(e -> e.pattern),
-                        ItemStack.STRICT_CODEC.fieldOf("result").forGetter(e -> e.result)
-                ).apply(builder, CreateRecipe::new)
-        );
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, CreateRecipe> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, e -> e.group,
-                ShapedRecipePattern.STREAM_CODEC, e -> e.pattern,
-                ItemStack.STREAM_CODEC, e -> e.result,
-                CreateRecipe::new
-        );
-
-        @Override
-        public MapCodec<CreateRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, CreateRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
+    @SuppressWarnings ("unchecked")
+    public RecipeSerializer<ShapedRecipe> getSerializer() {
+        return (RecipeSerializer<ShapedRecipe>) (Object) EnderStorageModContent.CREATE_RECIPE_SERIALIZER.get();
     }
 }

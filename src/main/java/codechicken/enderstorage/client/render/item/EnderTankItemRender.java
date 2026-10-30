@@ -9,7 +9,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
-import net.minecraft.world.item.ItemDisplayContext;
+
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -38,7 +38,7 @@ public class EnderTankItemRender implements SpecialModelRenderer<RenderState> {
     }
 
     @Override
-    public void submit(@Nullable RenderState state, ItemDisplayContext displayCtx, PoseStack pose, SubmitNodeCollector collector, int packedLight, int packedOverlay, boolean hasFoil, int outlineColor) {
+    public void submit(@Nullable RenderState state, PoseStack pose, SubmitNodeCollector collector, int packedLight, int packedOverlay, boolean hasFoil, int outlineColor) {
         if (state == null) return;
 
         state.lightCoords = packedLight;
@@ -46,17 +46,17 @@ public class EnderTankItemRender implements SpecialModelRenderer<RenderState> {
         RenderTileEnderTank.doSubmit(state, pose, collector, null);
     }
 
-    public record Unbaked() implements SpecialModelRenderer.Unbaked {
+    public record Unbaked() implements SpecialModelRenderer.Unbaked<RenderState> {
 
         public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(Unbaked::new);
 
         @Override
-        public MapCodec<? extends SpecialModelRenderer.Unbaked> type() {
+        public MapCodec<? extends SpecialModelRenderer.Unbaked<RenderState>> type() {
             return MAP_CODEC;
         }
 
         @Override
-        public SpecialModelRenderer<?> bake(BakingContext context) {
+        public SpecialModelRenderer<RenderState> bake(BakingContext context) {
             return new EnderTankItemRender();
         }
     }

@@ -20,11 +20,15 @@ import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
@@ -137,7 +141,7 @@ public class DataGenerators {
         }
 
         private Identifier customFlat(ItemModelGenerators itemModels, String path, String texture) {
-            return ModelTemplates.FLAT_ITEM.create(modLocation(path), TextureMapping.layer0(modLocation(texture)), itemModels.modelOutput);
+            return ModelTemplates.FLAT_ITEM.create(modLocation(path), TextureMapping.layer0(new Material(modLocation(texture))), itemModels.modelOutput);
         }
     }
 
@@ -150,8 +154,8 @@ public class DataGenerators {
         @Override
         protected void addTags(HolderLookup.Provider pProvider) {
             tag(BlockTags.MINEABLE_WITH_PICKAXE)
-                    .add(ENDER_CHEST_BLOCK.get())
-                    .add(ENDER_TANK_BLOCK.get());
+                    .add(ENDER_CHEST_BLOCK.get().builtInRegistryHolder().key())
+                    .add(ENDER_TANK_BLOCK.get().builtInRegistryHolder().key());
         }
     }
 
@@ -163,7 +167,7 @@ public class DataGenerators {
 
         @Override
         protected void registerRecipes() {
-            customShaped(ENDER_POUCH, (group, category, pattern, stack, showNotification) -> new CreateRecipe(group, pattern, stack))
+            customShaped(ENDER_POUCH, (group, category, pattern, stack, showNotification) -> new CreateRecipe(new Recipe.CommonInfo(showNotification), new CraftingRecipe.CraftingBookInfo(category, group), pattern, stack))
                     .key('P', Tags.Items.ENDER_PEARLS)
                     .key('L', Tags.Items.LEATHERS)
                     .key('B', Items.BLAZE_POWDER)
@@ -172,7 +176,7 @@ public class DataGenerators {
                     .patternLine("LPL")
                     .patternLine("BWB");
 
-            customShaped((ItemLike) ENDER_CHEST_ITEM, (group, category, pattern, stack, showNotification) -> new CreateRecipe(group, pattern, stack))
+            customShaped((ItemLike) ENDER_CHEST_ITEM, (group, category, pattern, stack, showNotification) -> new CreateRecipe(new Recipe.CommonInfo(showNotification), new CraftingRecipe.CraftingBookInfo(category, group), pattern, stack))
                     .key('P', Tags.Items.ENDER_PEARLS)
                     .key('O', Tags.Items.OBSIDIANS)
                     .key('C', Tags.Items.CHESTS_WOODEN)
@@ -181,7 +185,7 @@ public class DataGenerators {
                     .patternLine("BWB")
                     .patternLine("OCO")
                     .patternLine("BPB");
-            customShaped((ItemLike) ENDER_TANK_ITEM, (group, category, pattern, stack, showNotification) -> new CreateRecipe(group, pattern, stack))
+            customShaped((ItemLike) ENDER_TANK_ITEM, (group, category, pattern, stack, showNotification) -> new CreateRecipe(new Recipe.CommonInfo(showNotification), new CraftingRecipe.CraftingBookInfo(category, group), pattern, stack))
                     .key('P', Tags.Items.ENDER_PEARLS)
                     .key('O', Tags.Items.OBSIDIANS)
                     .key('C', Items.CAULDRON)
@@ -191,9 +195,9 @@ public class DataGenerators {
                     .patternLine("OCO")
                     .patternLine("BPB");
 
-            special(Identifier.fromNamespaceAndPath(MOD_ID, "recolour_ender_pouch"), () -> new ReColourRecipe(new ItemStack(ENDER_POUCH.get())));
-            special(Identifier.fromNamespaceAndPath(MOD_ID, "recolour_ender_chest"), () -> new ReColourRecipe(new ItemStack(ENDER_CHEST_ITEM.get())));
-            special(Identifier.fromNamespaceAndPath(MOD_ID, "recolour_ender_tank"), () -> new ReColourRecipe(new ItemStack(ENDER_TANK_ITEM.get())));
+            special(Identifier.fromNamespaceAndPath(MOD_ID, "recolour_ender_pouch"), () -> new ReColourRecipe(new ItemStackTemplate(ENDER_POUCH.get())));
+            special(Identifier.fromNamespaceAndPath(MOD_ID, "recolour_ender_chest"), () -> new ReColourRecipe(new ItemStackTemplate(ENDER_CHEST_ITEM.get())));
+            special(Identifier.fromNamespaceAndPath(MOD_ID, "recolour_ender_tank"), () -> new ReColourRecipe(new ItemStackTemplate(ENDER_TANK_ITEM.get())));
         }
     }
 }
