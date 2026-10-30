@@ -4,12 +4,12 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'signing'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.148'
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
     withSourcesJar()
     withJavadocJar()
@@ -45,7 +45,7 @@ neoForge {
             server()
         }
         data {
-            data()
+            clientData()
             programArguments.addAll '--mod', 'enderstorage', '--all', '--output', file("src/main/generated").absolutePath, '--existing', file("src/main/resources").absolutePath
         }
     }
