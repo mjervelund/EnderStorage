@@ -13,11 +13,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -119,74 +118,19 @@ public class TileEnderChest extends TileFrequencyOwner {
         return ResourceHandlerUtil.getRedstoneSignalFromResourceHandler(getItemHandler());
     }
 
-    public ResourceHandler<ItemResource> getItemHandler() {
-        if (resourceHandler == null) {
-            resourceHandler = VanillaContainerWrapper.of(new LiveStorage());
-        }
-        return resourceHandler;
-    }
-
     /**
      * Forwards every call to the frequency's <em>current</em> storage. The handler is cached by the
      * block entity and by other mods' capability caches (AE2 buses, hoppers), so it must not hold on
      * to a storage object: the manager is replaced on server start and when the frequency changes,
-     * and a handler bound to the old storage would read and write an orphan.
+     * and a handler bound to the old storage would read and write an orphan. It delegates to the
+     * storage's own wrapper ({@link VanillaContainerWrapper#of} keeps one per container): every chest
+     * of a frequency must share that wrapper's snapshot journal, or aborting a transaction that went
+     * through two of them restores their slots out of order (items voided or duplicated).
      */
-    private class LiveStorage implements Container {
-
-        @Override
-        public int getContainerSize() {
-            return getStorage().getContainerSize();
+    public ResourceHandler<ItemResource> getItemHandler() {
+        if (resourceHandler == null) {
+            resourceHandler = new DelegatingResourceHandler<>(() -> VanillaContainerWrapper.of(getStorage()));
         }
-
-        @Override
-        public boolean isEmpty() {
-            return getStorage().isEmpty();
-        }
-
-        @Override
-        public ItemStack getItem(int slot) {
-            return getStorage().getItem(slot);
-        }
-
-        @Override
-        public ItemStack removeItem(int slot, int amount) {
-            return getStorage().removeItem(slot, amount);
-        }
-
-        @Override
-        public ItemStack removeItemNoUpdate(int slot) {
-            return getStorage().removeItemNoUpdate(slot);
-        }
-
-        @Override
-        public void setItem(int slot, ItemStack stack) {
-            getStorage().setItem(slot, stack);
-        }
-
-        @Override
-        public int getMaxStackSize() {
-            return getStorage().getMaxStackSize();
-        }
-
-        @Override
-        public void setChanged() {
-            getStorage().setChanged();
-        }
-
-        @Override
-        public boolean stillValid(Player player) {
-            return getStorage().stillValid(player);
-        }
-
-        @Override
-        public boolean canPlaceItem(int slot, ItemStack stack) {
-            return getStorage().canPlaceItem(slot, stack);
-        }
-
-        @Override
-        public void clearContent() {
-            getStorage().clearContent();
-        }
+        return resourceHandler;
     }
 }
