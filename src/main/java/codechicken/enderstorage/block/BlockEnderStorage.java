@@ -143,10 +143,11 @@ public abstract class BlockEnderStorage<T extends TileFrequencyOwner> extends Mo
             if (!item.isEmpty()) {
                 EnumColour dye = EnumColour.fromDyeStack(item);
                 if (dye != null) {
-                    EnumColour[] colours = { null, null, null };
-                    if (colours[hit.subHit - 1] == dye) {
+                    // Same colour as the button already has: nothing to change, keep the dye.
+                    if (tile.getFrequency().toArray()[hit.subHit - 1] == dye) {
                         return InteractionResult.FAIL;
                     }
+                    EnumColour[] colours = { null, null, null };
                     colours[hit.subHit - 1] = dye;
                     tile.setFreq(tile.getFrequency().withColours(colours));
                     if (!player.getAbilities().instabuild) {
