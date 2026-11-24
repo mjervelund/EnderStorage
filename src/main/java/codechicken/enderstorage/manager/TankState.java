@@ -34,10 +34,10 @@ public abstract class TankState {
 
         @Override
         public void update() {
+            FluidStack b_liquid = s_liquid.copy();
             s_liquid = EnderStorageManager.instance(false)
                     .getStorage(frequency, EnderLiquidStorage.TYPE)
                     .getFluid();
-            FluidStack b_liquid = s_liquid.copy();
             if (!FluidStack.isSameFluidSameComponents(s_liquid, c_liquid)) {
                 sendSyncPacket();
                 c_liquid = s_liquid.copy();
