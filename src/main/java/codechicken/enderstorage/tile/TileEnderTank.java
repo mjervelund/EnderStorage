@@ -22,6 +22,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
@@ -181,9 +182,15 @@ public class TileEnderTank extends TileFrequencyOwner {
         return ResourceHandlerUtil.getRedstoneSignalFromResourceHandler(getFluidHandler());
     }
 
+    /**
+     * Forwards every call to the frequency's <em>current</em> storage. The handler is cached by the
+     * tile and by neighbours' capability caches, but must not be bound to a storage object: the
+     * manager is replaced on server start, and a handler bound to the old storage would fill and
+     * drain an orphan tank whose contents are never saved.
+     */
     public ResourceHandler<FluidResource> getFluidHandler() {
         if (fluidHandler == null) {
-            fluidHandler = getStorage().getHandler();
+            fluidHandler = new DelegatingResourceHandler<>(() -> getStorage().getHandler());
         }
         return fluidHandler;
     }
