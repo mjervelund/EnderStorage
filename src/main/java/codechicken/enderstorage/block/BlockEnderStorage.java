@@ -35,6 +35,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -166,11 +167,19 @@ public abstract class BlockEnderStorage<T extends TileFrequencyOwner> extends Mo
     }
 
     @Override
+    public boolean hasDynamicLightEmission(BlockState state) {
+        return true;
+    }
+
+    /**
+     * Light comes from the chunk's {@link AuxiliaryLightManager}, which the tile keeps up to date
+     * ({@code TileEnderTank#updateLight}). The server's light engine runs on its own thread, where
+     * {@code Level.getBlockEntity} returns null, so reading the tile here gave 0 on the server.
+     */
+    @Override
     public int getLightEmission(BlockState state, BlockGetter world, BlockPos pos) {
-        if (world.getBlockEntity(pos) instanceof TileFrequencyOwner tile) {
-            return tile.getLightValue();
-        }
-        return 0;
+        AuxiliaryLightManager lightManager = world.getAuxLightManager(pos);
+        return lightManager != null ? lightManager.getLightAt(pos) : 0;
     }
 
     @Override

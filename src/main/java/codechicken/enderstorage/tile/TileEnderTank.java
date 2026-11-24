@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.world.AuxiliaryLightManager;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
@@ -39,6 +40,7 @@ public class TileEnderTank extends TileFrequencyOwner {
     private @Nullable ResourceHandler<FluidResource> fluidHandler;
 
     private boolean described;
+    private boolean unloading;
 
     public TileEnderTank(BlockPos pos, BlockState state) {
         super(EnderStorageModContent.ENDER_TANK_TILE.get(), pos, state);
@@ -171,6 +173,36 @@ public class TileEnderTank extends TileFrequencyOwner {
         return 0;
     }
 
+    /**
+     * Publishes {@link #getLightValue()} to the chunk's {@link AuxiliaryLightManager}, which
+     * {@code BlockEnderStorage#getLightEmission} reads; a changed value re-checks the light there.
+     */
+    private void updateLight() {
+        if (level == null) return;
+        AuxiliaryLightManager lightManager = level.getAuxLightManager(worldPosition);
+        if (lightManager != null) {
+            lightManager.setLightAt(worldPosition, getLightValue());
+        }
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        unloading = true;
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        // Broken or replaced (not unloaded with its chunk): drop the light entry with the tank.
+        if (!unloading && level != null) {
+            AuxiliaryLightManager lightManager = level.getAuxLightManager(worldPosition);
+            if (lightManager != null) {
+                lightManager.removeLightAt(worldPosition);
+            }
+        }
+    }
+
     @Override
     public boolean redstoneInteraction() {
         return true;
@@ -200,8 +232,7 @@ public class TileEnderTank extends TileFrequencyOwner {
 
         @Override
         public void onLiquidChanged() {
-            assert level != null;
-            level.getChunkSource().getLightEngine().checkBlock(worldPosition);
+            updateLight();
         }
     }
 
@@ -209,8 +240,7 @@ public class TileEnderTank extends TileFrequencyOwner {
 
         @Override
         public void onLiquidChanged() {
-            assert level != null;
-            level.getChunkSource().getLightEngine().checkBlock(worldPosition);
+            updateLight();
         }
     }
 
