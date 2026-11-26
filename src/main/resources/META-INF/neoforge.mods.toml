@@ -6,6 +6,8 @@ license="The MIT License (MIT)"
 [[mods]]
 	modId="enderstorage"
 	displayName="EnderStorage"
+	iconFile="icons/enderstorage.png"
+	iconBlur=false
 	version="${file.jarVersion}"
 
 	updateJSONURL="https://version-check.covers1624.net/check/?mod=EnderStorage&mc=${mc_version}"
